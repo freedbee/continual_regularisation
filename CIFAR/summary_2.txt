@@ -1,0 +1,2 @@
+0.7320666611194611 summed_importances__seed=0__method=SI__c=5.0__re_init_model=True__rescale=1.0__evaluate_on_validation=True__batch_size=256__n_tasks=6__n_epochs_per_task=60__damp=0.001
+0.7392666737238566 scatter__seed=0__method=SI__c=5.0__re_init_model=True__rescale=1.0__n_samples=500__evaluate_on_validation=True__batch_size=256__n_tasks=6__n_epochs_per_task=60__damp=0.001

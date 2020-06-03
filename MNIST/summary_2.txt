@@ -1,0 +1,7 @@
+0.9542999863624573 summed_importances__seed=0__method=SI__c=0.2__re_init_model=1.0__rescale=1.0__batch_size=256__n_tasks=1__n_epochs_per_task=1__first_hidden=2000__second_hidden=2000__damp=0.1
+0.9538000226020813 summed_importances__seed=0__method=SI__c=0.2__re_init_model=1.0__rescale=1.0__batch_size=256__n_tasks=1__n_epochs_per_task=1__first_hidden=2000__second_hidden=2000__damp=0.1
+0.9871000051498413 summed_importances__seed=0__method=SI__c=0.2__re_init_model=1.0__rescale=1.0__batch_size=256__n_tasks=1__n_epochs_per_task=20__first_hidden=2000__second_hidden=2000__damp=0.1
+0.9700999855995178 scatter__seed=0__method=SI__c=0.2__re_init_model=True__rescale=1.0__n_samples=1000__batch_size=256__n_tasks=1__n_epochs_per_task=1__first_hidden=2000__second_hidden=2000__damp=0.1
+0.9832499921321869 scatter__seed=0__method=SI__c=0.2__re_init_model=True__rescale=1.0__n_samples=1000__batch_size=256__n_tasks=2__n_epochs_per_task=20__first_hidden=2000__second_hidden=2000__damp=0.1
+0.9719600021839142 summed_importances__seed=0__method=SI__c=0.2__re_init_model=True__rescale=1.0__batch_size=256__n_tasks=10__n_epochs_per_task=20__first_hidden=2000__second_hidden=2000__damp=0.1
+0.9728600025177002 scatter__seed=0__method=SI__c=0.2__re_init_model=True__rescale=1.0__n_samples=1000__batch_size=256__n_tasks=10__n_epochs_per_task=20__first_hidden=2000__second_hidden=2000__damp=0.1
