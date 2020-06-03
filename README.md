@@ -2,7 +2,7 @@
 Code accompanying the paper "Understanding Regularisation Methods for Continual Learning".
 This directory contains code to run the continual learning algorithms described in the paper and to create the plots from the paper (as well as others).
 
-Code was tested with:
+## Code was tested with:
 - tensorflow 1.14.0     (older versions will probably not work for CNN architecture)
 - keras 2.2.5           (not much keras is used, so may well work with other version)
 - python 3.6.8          (some older versions handle dicts differently, which may cause problems with the searcher_*.py files, see below for alternative)
@@ -10,7 +10,7 @@ Code was tested with:
 - matplotlib 3.0.2      (probably doesn't matter)
 
 
-Description:
+## How to use the code:
 ALGORITHMS
 - the script worker_SI.py implements algorithms SI, SIU, SIB, OnAF
 - the script worker_MAS.py implements algorithms MAS, MASX, AF, EWC
@@ -22,6 +22,6 @@ ALGORITHMS
 PLOTS
 - You can use the vis_*.ipython notebooks to view plots. We provide data for all plots. In the notebooks, you can also find instructions how to generate and plot your own data.
 
-DISCLAIMER
+## DISCLAIMER
 The code here is a cleaned up version of the code originally used to obtain the results reported in the paper. We checked for all programs that they still work as desired. Should you nevertheless find any bugs, please let us know. 
 If there are any details missing from the algorithm descriptions, also don't hesitate to contact us.
