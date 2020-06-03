@@ -14,13 +14,13 @@ This directory contains code to run the continual learning algorithms described 
 ALGORITHMS
 - the script worker_SI.py implements algorithms SI, SIU, SIB, OnAF
 - the script worker_MAS.py implements algorithms MAS, MASX, AF, EWC
-- To use the worker_${html`*`}$.py scripts, run the searcher_${html`*`}$.py script. There, you can also specify the grids over which should be searched.
+- To use the worker_`*`.py scripts, run the searcher_`*`.py script. There, you can also specify the grids over which should be searched.
 - After any run is completed, the final average accuracy over all tasks will be written to summary.txt
 - You can use read_results.ipynb to get a more human-friendly summary of the results in summary.txt.
-- NB: Instead of using searcher_${html`*`}$.py, you can use the worker_${html`*`}$.py scripts directly by modifying a few lines in the beginning.
+- NB: Instead of using searcher_`*`.py, you can use the worker_`*`.py scripts directly by modifying a few lines in the beginning.
 
 PLOTS
-- You can use the vis_${html`*`}$.ipython notebooks to view plots. We provide data for all plots. In the notebooks, you can also find instructions how to generate and plot your own data.
+- You can use the vis_`*`.ipython notebooks to view plots. We provide data for all plots. In the notebooks, you can also find instructions how to generate and plot your own data.
 
 ## DISCLAIMER
 The code here is a cleaned up version of the code originally used to obtain the results reported in the paper. We checked for all programs that they still work as desired. Should you nevertheless find any bugs, please let us know. 
