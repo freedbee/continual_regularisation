@@ -5,8 +5,8 @@ This directory contains code to run the continual learning algorithms described 
 ## Code was tested with:
 - tensorflow 1.14.0     (older versions will probably not work for CNN architecture)
 - keras 2.2.5           (not much keras is used, so may well work with other version)
-- python 3.6.8          (some older versions handle dicts differently, which may cause problems with the searcher_*.py files, see below for alternative)
-- sklearn 0.21.4        (needed for gird searches in searcher_*.py files only)
+- python 3.6.8          (some older versions handle dicts differently, which may cause problems with the searcher_`*`.py files, see below for alternative)
+- sklearn 0.21.4        (needed for gird searches in searcher_`*`.py files only)
 - matplotlib 3.0.2      (probably doesn't matter)
 
 
