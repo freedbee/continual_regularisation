@@ -20,7 +20,7 @@ ALGORITHMS
 - NB: Instead of using searcher_`*`.py, you can use the worker_`*`.py scripts directly by modifying a few lines in the beginning.
 
 PLOTS
-- You can use the vis_`*`.ipython notebooks to view plots. We provide data for all plots. In the notebooks, you can also find instructions how to generate and plot your own data.
+- You can use the vis_`*`.ipython notebooks to view plots. Data for all plots is provided. In the notebooks, you can also find instructions how to generate and plot your own data.
 
 ## DISCLAIMER
 The code here is a cleaned up version of the code originally used to obtain the results reported in the paper. We checked for all programs that they still work as desired. Should you nevertheless find any bugs, please let us know. 
