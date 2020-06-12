@@ -1,5 +1,5 @@
 # continual_regularisation
-Code accompanying the paper "Understanding Regularisation Methods for Continual Learning".
+Code accompanying the paper "Understanding Regularisation Methods for Continual Learning" (https://arxiv.org/pdf/2006.06357.pdf).
 This directory contains code to run the continual learning algorithms described in the paper and to create the plots from the paper (as well as others).
 
 ## Code was tested with:
