@@ -18,7 +18,7 @@ save_outputs_to_log_dir = False
 compute_full_gradients = False             #calculates full training set gradient at each step -- may take a while...
 meta = 'run_new'                           #influences name of .pickle file which will store data from this run
 HP = {\
-'seed'              : 1,\
+'seed'              : 0,\
 'method'            : 'SI',\
 'c'                 : 0.2,\
 're_init_model'     : True,\

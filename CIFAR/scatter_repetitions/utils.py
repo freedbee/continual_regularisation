@@ -97,7 +97,7 @@ def intensity_plot(x,y, n_bins, title=None, xlabel=None, ylabel=None, save=False
     min_y = min(y)
     matrix = np.zeros((n_bins,n_bins))
     for i in range(len(x)):
-        x_bin = min(int(n_bins*(x[i]-min_x)/(max_x-min_x)),n_bins-1)
+        x_bin = min(int(n_bins*(x[i]-min_x)/(max_x-min_y)),n_bins-1)
         y_bin = min(int(n_bins*(y[i]-min_y)/(max_y-min_y)),n_bins-1)
         matrix[x_bin,y_bin] += 1
     matrix = np.transpose(matrix)    
@@ -134,71 +134,3 @@ def intensity_plot(x,y, n_bins, title=None, xlabel=None, ylabel=None, save=False
     plt.imshow(matrix2, cmap='gray')
     plt.show()
     """
-    
-def intensity_plot_matrix(x,y, n_bins, title=None, xlabel=None, ylabel=None, save=False, path=None):
-    if len(n_bins) == 1:
-        n_bins_x = n_bins
-        n_bins_y = n_bins
-    else:
-        n_bins_x = n_bins[0]
-        n_bins_y = n_bins[1]
-    print(n_bins_x, n_bins_y)    
-    my_eps = 1e-10
-    max_x = max(x)
-    min_x = min(x)
-    max_y = max(y)
-    min_y = min(y)
-    matrix = np.zeros((n_bins_x,n_bins_y))
-    print(matrix.shape)
-    for i in range(len(x)):
-        x_bin = min(int(n_bins_x*(x[i]-min_x)/(max_x-min_x)),n_bins_x-1)
-        y_bin = min(int(n_bins_y*(y[i]-min_y)/(max_y-min_y)),n_bins_y-1)
-        matrix[x_bin,y_bin] += 1
-    matrix = np.transpose(matrix)    
-    matrix = matrix[np.arange(n_bins_y-1,-1,-1),:]
-    matrix1 = np.copy(matrix)
-    matrix2 = np.copy(matrix)
-    print(matrix2.shape)
-    print('columns normalised')
-    #print(matrix2)
-    for i in range(n_bins_x):
-        #print(matrix2[i, :])
-        matrix2[:,i] /= (matrix2[:,i].max()+my_eps)
-        #print(matrix2[i, :])
-    #print(matrix2)
-    print(matrix2.shape)
-    return matrix2
-    
-    
-    
-    
-def mix_dataset_no_val(dataset_train, dataset_test, group_size=2, group_array=None, random=False):
-    """
-    assumes one hot encoded labels and split dataset 
-    """
-    #first create group_array if necessary
-    if group_array==None:
-        labels = range(len(dataset_train[0][1][0]))
-        if random:
-            labels = np.random.permutation(labels)
-        group_array = []    
-        for i in range(int(len(labels)/group_size)):
-            group_array.append( labels[i*group_size:(i+1)*group_size] )
-    
-    #mix classes accoding to group array        
-    mix_classes = []
-    for j, data in enumerate([dataset_train, dataset_test]):
-        mix_classes.append([])
-        for i, group in enumerate(group_array):
-            images = np.zeros([0, *data[0][0].shape[1:] ])
-            labels = np.zeros([0, len(group)])
-            for label in group:
-                images = np.concatenate((images, data[label][0]))
-                #print('labels ', labels.shape)
-                #print('data[label][1] ', data[label][1].shape)
-                #print('data[label][1][:, group]', data[label][1][:, group].shape)
-                #print(data[label][1][:][group])
-                labels = np.concatenate((labels, data[label][1][:,group]) )
-            
-                mix_classes[j].append((images, labels))
-    return mix_classes[0], mix_classes[1]

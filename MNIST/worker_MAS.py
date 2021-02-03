@@ -20,7 +20,7 @@ HP = {\
 'method'            : inputs[3],\
 'c'                 : float(inputs[4]),\
 're_init_model'     : bool(float(inputs[5])),\
-'n_samples'         : 1000,\
+'n_samples'         : int(inputs[6]),\
 'batch_size'        : 256,\
 'n_tasks'           : 10,\
 'n_epochs_per_task' : 20,\
@@ -76,6 +76,8 @@ Y_logits = tf.matmul(H2,W2) + b2
 Y_pred = tf.nn.softmax(Y_logits)
 l2_pred = tf.reduce_sum(tf.square(Y_pred))
 l2_pred_max = tf.square(tf.reduce_max(Y_pred, axis=1))
+l2_logits = tf.reduce_sum(tf.square(Y_logits))
+l2_logits_max = tf.square(tf.reduce_max(Y_logits, axis=1))
 
 
 #weight protection
@@ -83,6 +85,8 @@ old_variables = []
 importances = []
 contributions_MAS = []
 contributions_MASX = []
+contributions_MAS2 = []
+contributions_MASX2 = []
 contributions_EWC = []
 contributions_AF = []
 old_eq_new_op = []
@@ -97,6 +101,8 @@ for i in range(len(variables)):
     #store changes
     contributions_MAS.append(tf.Variable(tf.zeros(tf.shape(variables[i])), trainable=False))
     contributions_MASX.append(tf.Variable(tf.zeros(tf.shape(variables[i])), trainable=False))
+    contributions_MAS2.append(tf.Variable(tf.zeros(tf.shape(variables[i])), trainable=False))
+    contributions_MASX2.append(tf.Variable(tf.zeros(tf.shape(variables[i])), trainable=False))
     contributions_EWC.append(tf.Variable(tf.zeros(tf.shape(variables[i])), trainable=False))
     contributions_AF.append(tf.Variable(tf.zeros(tf.shape(variables[i])), trainable=False))
 
@@ -124,23 +130,32 @@ gradient = trainer2.compute_gradients(CEL, variables)
 gradient_MAS = trainer2.compute_gradients(l2_pred, variables)
 gradient_MASX = trainer2.compute_gradients(l2_pred_max, variables)
 
+gradient_MAS2 = trainer2.compute_gradients(l2_logits, variables)
+gradient_MASX2 = trainer2.compute_gradients(l2_logits_max, variables)
+
 
 #define ops to update importances
 contributions_to_zero_op = []
 importances_op = []
 add_contributions_MAS_op = []
 add_contributions_MASX_op = []
+add_contributions_MAS2_op = []
+add_contributions_MASX2_op = []
 add_contributions_EWC_op = []
 add_contributions_AF_op = []
 
 for i in range(len(variables)):
     contributions_to_zero_op.append( tf.assign(contributions_MAS[i], tf.zeros(tf.shape(contributions_AF[i]))) )
     contributions_to_zero_op.append( tf.assign(contributions_MASX[i], tf.zeros(tf.shape(contributions_AF[i]))) )
+    contributions_to_zero_op.append( tf.assign(contributions_MAS2[i], tf.zeros(tf.shape(contributions_AF[i]))) )
+    contributions_to_zero_op.append( tf.assign(contributions_MASX2[i], tf.zeros(tf.shape(contributions_AF[i]))) )
     contributions_to_zero_op.append( tf.assign(contributions_EWC[i], tf.zeros(tf.shape(contributions_AF[i]))) )
     contributions_to_zero_op.append( tf.assign(contributions_AF[i], tf.zeros(tf.shape(contributions_AF[i]))) )
     
     add_contributions_MAS_op.append( contributions_MAS[i].assign_add(   tf.abs(gradient_MAS[i][0])  ))
     add_contributions_MASX_op.append( contributions_MASX[i].assign_add(   tf.abs(gradient_MASX[i][0])  ))
+    add_contributions_MAS2_op.append( contributions_MAS2[i].assign_add(   tf.abs(gradient_MAS2[i][0])  ))
+    add_contributions_MASX2_op.append( contributions_MASX2[i].assign_add(   tf.abs(gradient_MASX2[i][0])  ))
     add_contributions_EWC_op.append( contributions_EWC[i].assign_add(   my_factor_ph * tf.square(gradient[i][0])  ))
     add_contributions_AF_op.append( contributions_AF[i].assign_add(   my_factor_ph * tf.abs(gradient[i][0])  ))
 
@@ -148,8 +163,14 @@ for i in range(len(variables)):
         importances_op.append( importances[i].assign_add( contributions_MAS[i]/HP['n_samples']) )
     if HP['method'] == 'MASX':
         importances_op.append( importances[i].assign_add( contributions_MASX[i]/HP['n_samples']) )
+    if HP['method'] == 'MAS2':
+        importances_op.append( importances[i].assign_add( contributions_MAS2[i]/HP['n_samples']) )
+    if HP['method'] == 'MASX2':
+        importances_op.append( importances[i].assign_add( contributions_MASX2[i]/HP['n_samples']) )
     if HP['method'] == 'EWC':
         importances_op.append( importances[i].assign_add( contributions_EWC[i]/HP['n_samples']) )
+    if HP['method'] == 'rEWC':
+        importances_op.append( importances[i].assign_add( tf.sqrt(contributions_EWC[i]/HP['n_samples'])) )
     if HP['method'] == 'AF':
         importances_op.append( importances[i].assign_add( contributions_AF[i]/HP['n_samples']) )
 
@@ -205,14 +226,18 @@ with tf.Session(config=config) as sess:
               if HP['method'] == 'MAS':
                   sess.run(add_contributions_MAS_op, feed_dict={X_ph:X_batch, Y_ph:Y_batch})
               if HP['method'] == 'MASX':
-                  sess.run(add_contributions_MASX_op, feed_dict={X_ph:X_batch, Y_ph:Y_batch})   
-              if HP['method'] == 'EWC' or HP['method'] == 'AF':
+                  sess.run(add_contributions_MASX_op, feed_dict={X_ph:X_batch, Y_ph:Y_batch}) 
+              if HP['method'] == 'MAS2':
+                  sess.run(add_contributions_MAS2_op, feed_dict={X_ph:X_batch, Y_ph:Y_batch})
+              if HP['method'] == 'MASX2':
+                  sess.run(add_contributions_MASX2_op, feed_dict={X_ph:X_batch, Y_ph:Y_batch})   
+              if HP['method'] == 'EWC' or HP['method'] == 'AF' or HP['method'] == 'rEWC':
                   predictions = sess.run(Y_pred,feed_dict={X_ph:X_batch, Y_ph:Y_batch}) 
                   for ii in range(10):  
                       Y_fake = np.zeros([1,10])
                       Y_fake[0,ii] = 1
                       my_factor = predictions[0,ii]
-                      if HP['method'] == 'EWC':
+                      if HP['method'] == 'EWC' or HP['method'] == 'rEWC':
                           sess.run(add_contributions_EWC_op, feed_dict={X_ph:X_batch, Y_ph:Y_fake, my_factor_ph:my_factor})
                       if HP['method'] == 'AF':
                           sess.run(add_contributions_AF_op, feed_dict={X_ph:X_batch, Y_ph:Y_fake, my_factor_ph:my_factor})      
@@ -238,7 +263,8 @@ if save_outputs_to_log_dir:
     sys.stdout = orig_stdout
     f.close()
 
-file = open('summary.txt', 'a+')
+file = open('summary_MAS.txt', 'a+')
 file.write(str(np.mean(testing_acc_s))+' '+HP_label+'\n')
 file.close()
+
 
