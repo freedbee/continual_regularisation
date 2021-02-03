@@ -1,4 +1,5 @@
-# Code Accompanying the Paper "Unifying Regularisation Methods" (https://arxiv.org/pdf/2006.06357.pdf)
+# Code Accompanying the Paper "Unifying Regularisation Methods" 
+(https://arxiv.org/pdf/2006.06357.pdf)
 
 ## Instructions:
 Directories 'MNIST' and 'CIFAR' contain code for Permuted-MNIST and Split CIFAR 10/100 and are structured similarly.
