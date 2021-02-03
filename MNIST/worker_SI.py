@@ -4,6 +4,7 @@ end = time.time()
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+mnist_SIU = input_data.read_data_sets('MNIST_data', one_hot=True)
 import numpy as np
 
 
@@ -14,14 +15,16 @@ visible_GPU = inputs[1]
 save_outputs_to_log_dir = True
 
 ### HYPERPARAMETERS
-# for method choose SI, SIU, SIB, OnAF
+# for method choose SI, SIU, SIB, SOS
 HP = {\
 'seed'              : int(inputs[2]),\
 'method'            : inputs[3],\
 'c'                 : float(inputs[4]),\
 're_init_model'     : bool(float(inputs[5])),\
 'rescale'           : float(inputs[6]),\
-'batch_size'        : 256,\
+'b2'                : 0.999,\
+'SOS_alpha'         : float(inputs[7]),\
+'batch_size'        : int(inputs[8]),\
 'n_tasks'           : 10,\
 'n_epochs_per_task' : 20,\
 'first_hidden'      : 2000,\
@@ -87,7 +90,7 @@ importances = []
 contributions_SI = []
 contributions_SIU = []
 contributions_SIB = []
-contributions_OnAF = []
+contributions_SOS = []
 lengths = []
 length_variables = []
 length_eq_new_op = []
@@ -109,7 +112,7 @@ for i in range(len(variables)):
     contributions_SI.append(tf.Variable(tf.zeros(tf.shape(variables[i])), trainable=False))
     contributions_SIU.append(tf.Variable(tf.zeros(tf.shape(variables[i])), trainable=False))
     contributions_SIB.append(tf.Variable(tf.zeros(tf.shape(variables[i])), trainable=False))
-    contributions_OnAF.append(tf.Variable(tf.zeros(tf.shape(variables[i])), trainable=False))
+    contributions_SOS.append(tf.Variable(tf.zeros(tf.shape(variables[i])), trainable=False))
     lengths.append(tf.Variable(tf.zeros(tf.shape(variables[i])), trainable=False))
     # store variables needed to calculated update lengths
     length_variables.append( tf.Variable(tf.zeros(tf.shape(variables[i])), trainable=False) )
@@ -131,7 +134,7 @@ correct_a = tf.equal(tf.argmax(Y_ph,axis=1), tf.argmax(Y_pred,axis=1))
 accuracy = tf.reduce_mean(tf.cast(correct_a,tf.float32))
 
 #training and gradients
-trainer = tf.train.AdamOptimizer()
+trainer = tf.train.AdamOptimizer(learning_rate=0.001*HP['batch_size']/256)
 train = trainer.minimize(total_loss)
 
 trainer2 = tf.train.GradientDescentOptimizer(1.0) #lr doesnt matter
@@ -149,13 +152,13 @@ old_gradients_unbiased_op = []
 add_contributions_SI_op = []
 add_contributions_SIU_op = []
 add_contributions_SIB_op = []
-add_contributions_OnAF_op = []
+add_contributions_SOS_op = []
 
 for i in range(len(variables)):
     contributions_to_zero_op.append( tf.assign(contributions_SI[i], tf.zeros(tf.shape(contributions_SI[i]))) )
     contributions_to_zero_op.append( tf.assign(contributions_SIU[i], tf.zeros(tf.shape(contributions_SI[i]))) )
     contributions_to_zero_op.append( tf.assign(contributions_SIB[i], tf.zeros(tf.shape(contributions_SI[i]))) )
-    contributions_to_zero_op.append( tf.assign(contributions_OnAF[i], tf.zeros(tf.shape(contributions_SI[i]))) )
+    contributions_to_zero_op.append( tf.assign(contributions_SOS[i], tf.zeros(tf.shape(contributions_SI[i]))) )
     
     old_gradients_var.append( tf.Variable(tf.zeros(tf.shape(variables[i])), trainable=False) )
     old_gradients_op.append(old_gradients_var[i].assign(gradient[i][0]))
@@ -166,8 +169,9 @@ for i in range(len(variables)):
     add_contributions_SI_op.append( contributions_SI[i].assign_add(   tf.multiply(-old_gradients_var[i],variables[i]-prev_variables[i])  ))
     add_contributions_SIU_op.append( contributions_SIU[i].assign_add(   tf.multiply(-old_gradients_unbiased_var[i],variables[i]-prev_variables[i])  ))
     add_contributions_SIB_op.append( contributions_SIB[i].assign_add(   tf.multiply(-old_gradients_var[i]+old_gradients_unbiased_var[i],variables[i]-prev_variables[i])  ))
-    add_contributions_OnAF_op.append( contributions_OnAF[i].assign_add(   tf.abs(old_gradients_var[i])  ))
-
+    
+    add_contributions_SOS_op.append( contributions_SOS[i].assign(   HP['b2']*contributions_SOS[i] + (1-HP['b2'])*tf.square(HP['SOS_alpha']*old_gradients_unbiased_var[i]-old_gradients_var[i])  ))
+    
     lengths_op.append( lengths[i].assign(variables[i] - length_variables[i]) )
     if HP['method'] == 'SI':
         importances_op.append( importances[i].assign_add(tf.maximum(0.0,tf.divide(contributions_SI[i],tf.square(lengths[i])*HP['rescale'] + HP['damp']) )) )
@@ -175,8 +179,9 @@ for i in range(len(variables)):
         importances_op.append( importances[i].assign_add(tf.maximum(0.0,tf.divide(contributions_SIU[i],tf.square(lengths[i])*HP['rescale'] + HP['damp']) )) )
     if HP['method'] == 'SIB':
         importances_op.append( importances[i].assign_add(tf.maximum(0.0,tf.divide(contributions_SIB[i],tf.square(lengths[i])*HP['rescale'] + HP['damp']) )) )
-    if HP['method'] == 'OnAF':
-        importances_op.append( importances[i].assign_add(tf.maximum(0.0,tf.divide(contributions_OnAF[i],tf.square(lengths[i])*HP['rescale'] + HP['damp']) )) )
+    if HP['method'] == 'SOS':
+        #better version would exchange order of tf.max and tf.sqrt (maybe divide). I DID IT!
+        importances_op.append( importances[i].assign_add( tf.divide(tf.sqrt(tf.maximum(contributions_SOS[i], 0.0)), tf.square(lengths[i])*HP['rescale'] + HP['damp']) ) )
 
 
 #Get Adam Variables
@@ -221,8 +226,8 @@ with tf.Session(config=config) as sess:
             start = time.time()
             for j in range(n_iterations):
                 ## IF NEEDED, CALCULATE GRADIENTS ON INDEPENDENT BATCH
-                if HP['method'] == 'SIU' or HP['method'] == 'SIB':
-                    X_batch, Y_batch = mnist.train.next_batch(HP['batch_size'])
+                if (HP['method'] == 'SOS' and HP['SOS_alpha'] != 0) or HP['method'] == 'SIU' or HP['method'] == 'SIB':
+                    X_batch, Y_batch = mnist_SIU.train.next_batch(HP['batch_size'])
                     X_batch = X_batch[:,permutations[task]]
                     sess.run(old_gradients_unbiased_op,feed_dict={X_ph:X_batch, Y_ph:Y_batch})
                 
@@ -241,8 +246,8 @@ with tf.Session(config=config) as sess:
                     sess.run(add_contributions_SIU_op)  
                 if HP['method'] == 'SIB':
                     sess.run(add_contributions_SIB_op)  
-                if HP['method'] == 'OnAF':
-                    sess.run(add_contributions_OnAF_op)  
+                if (HP['method'] == 'SOS'):
+                    sess.run(add_contributions_SOS_op)  
             #END OF EPOCH
         #END OF TASK
         # Do what needs to be done for SI
@@ -267,7 +272,7 @@ if save_outputs_to_log_dir:
     sys.stdout = orig_stdout
     f.close()
 
-file = open('summary.txt', 'a+')
+file = open('summary_SI.txt', 'a+')
 file.write(str(np.mean(testing_acc_s))+' '+HP_label+'\n')
 file.close()
 
